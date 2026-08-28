@@ -1,0 +1,129 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum PaymentType {
+  PIX
+  CREDIT_CARD
+  BANK_TRANSFER
+  CRYPTO
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Customer {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String   @unique
+  phone     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  inventory   Inventory?
+  orderItems  OrderItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Inventory {
+  id              String   @id @default(uuid()) @db.Uuid
+  productId       String   @unique @db.Uuid
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity        Int      @default(0)
+  lastRestockedAt DateTime? @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model Order {
+  id            String      @id @default(uuid()) @db.Uuid
+  customerId    String      @db.Uuid
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  status        OrderStatus @default(PENDING)
+  totalAmount   Decimal     @db.Decimal(10, 2)
+  items         OrderItem[]
+  payment       Payment?
+  createdAt     DateTime    @default(now())
+  processingAt  DateTime?
+  paidAt        DateTime?
+  failedAt      DateTime?
+  cancelledAt   DateTime?
+  updatedAt     DateTime    @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id         String   @id @default(uuid()) @db.Uuid
+  orderId    String   @db.Uuid
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String   @db.Uuid
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(10, 2) // preço no momento da compra
+  createdAt  DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id            String             @id @default(uuid()) @db.Uuid
+  orderId       String             @unique @db.Uuid
+  order         Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type          PaymentType
+  status        PaymentStatus      @default(PENDING)
+  amount        Decimal            @db.Decimal(10, 2)
+  externalId    String?            @unique // ID no gateway externo
+  transactions  PaymentTransaction[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model PaymentTransaction {
+  id           String   @id @default(uuid()) @db.Uuid
+  paymentId    String   @db.Uuid
+  payment      Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  status       PaymentStatus
+  errorMessage String?
+  metadata     Json?    // dados adicionais da tentativa (ex: resposta do gateway)
+  createdAt    DateTime @default(now())
+
+  @@index([paymentId])
+  @@index([createdAt])
+}
