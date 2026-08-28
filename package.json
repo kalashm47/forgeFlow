@@ -9,18 +9,21 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@fastify/autoload": "^6.5.0",
+    "@fastify/env": "^7.0.0",
+    "@fastify/type-provider-typebox": "^6.1.0",
     "@prisma/client": "^6.19.3",
-    "fastify": "^5.0.0"
+    "@sinclair/typebox": "^0.34.52",
+    "fastify": "^5.0.0",
+    "fastify-plugin": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
