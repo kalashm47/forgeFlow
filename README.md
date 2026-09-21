@@ -1,33 +1,33 @@
 # ⚙️ ForgeFlow
 
-> **Concurrent Order Processing API built with TypeScript, Node.js and PostgreSQL.**
+> **Concurrent Order Processing API built with TypeScript, Node.js, and PostgreSQL.**
 
-O **ForgeFlow** é uma API de processamento de pedidos projetada para explorar, na prática, **Design Patterns, concorrência, Worker Threads, controle de estoque e consistência transacional**.
+**ForgeFlow** is an order processing API designed to explore, in practice, **Design Patterns, concurrency, Worker Threads, inventory control, and transactional consistency**.
 
-O projeto simula um sistema de processamento de pedidos capaz de lidar com múltiplas operações simultâneas, utilizando uma arquitetura preparada para processamento concorrente e diferentes estratégias de pagamento.
-
----
-
-## 🧠 Sobre o projeto
-
-Imagine um e-commerce recebendo centenas de pedidos simultaneamente.
-
-O sistema precisa:
-
-* processar diferentes tipos de pagamento;
-* executar operações independentes concorrentemente;
-* distribuir tarefas entre Workers;
-* controlar um estoque compartilhado;
-* impedir overselling;
-* evitar inconsistências causadas por requisições simultâneas;
-* manter o banco de dados consistente;
-* permitir adicionar novos meios de pagamento sem modificar o núcleo do sistema.
-
-O ForgeFlow foi criado para estudar e demonstrar esses problemas.
+The project simulates an order processing system capable of handling multiple simultaneous operations, using an architecture designed for concurrent processing and multiple payment strategies.
 
 ---
 
-# 🏗️ Arquitetura
+## 🧠 About the Project
+
+Imagine an e-commerce platform receiving hundreds of orders simultaneously.
+
+The system needs to:
+
+* process different payment methods;
+* execute independent operations concurrently;
+* distribute tasks across Workers;
+* manage shared inventory;
+* prevent overselling;
+* avoid inconsistencies caused by concurrent requests;
+* maintain database consistency;
+* allow new payment methods to be added without modifying the core processing logic.
+
+ForgeFlow was created to study and demonstrate these challenges.
+
+---
+
+# 🏗️ Architecture
 
 ```text
                          ┌──────────────────┐
@@ -70,13 +70,13 @@ O ForgeFlow foi criado para estudar e demonstrar esses problemas.
 
 ---
 
-# 🎯 Objetivos
+# 🎯 Objectives
 
-O principal objetivo é estudar como construir um backend que precise lidar com **processamento concorrente e estado compartilhado**.
+The main goal of the project is to study how to build a backend capable of handling **concurrent processing and shared state**.
 
 ### Design Pattern
 
-Implementar o **Factory Pattern** para criação dos processadores de pagamento.
+The **Factory Pattern** is used to create payment processors.
 
 ```text
 PaymentProcessor
@@ -87,7 +87,7 @@ PaymentProcessor
        └── CryptoProcessor
 ```
 
-A aplicação não precisa conhecer diretamente qual implementação deve ser utilizada.
+The application does not need to know which concrete implementation should be instantiated.
 
 ```text
 Order
@@ -103,20 +103,20 @@ PaymentProcessorFactory
 
 ---
 
-# ⚡ Concorrência
+# ⚡ Concurrency
 
-Um dos principais objetivos do projeto é explorar concorrência no Node.js.
+One of the project's main goals is to explore concurrency in Node.js.
 
-O ForgeFlow utiliza:
+ForgeFlow uses:
 
 * `Promise.all`
 * Worker Threads
 * Worker Pool
 * Task Queue
-* processamento concorrente
-* controle de recursos
+* concurrent processing
+* resource management
 
-A ideia é distribuir tarefas:
+Tasks are distributed across workers:
 
 ```text
                     Task Queue
@@ -129,45 +129,45 @@ A ideia é distribuir tarefas:
        Order A       Order B       Order C
 ```
 
-O número de Workers é limitado para evitar a criação indiscriminada de threads.
+The number of Workers is limited to prevent uncontrolled thread creation.
 
 ---
 
 # 🧨 Race Conditions
 
-O projeto possui um cenário específico para demonstrar **race conditions**.
+The project includes a dedicated scenario for demonstrating **race conditions**.
 
 Imagine:
 
 ```text
-Estoque = 1
+Stock = 1
 
 Request A ──────┐
                 │
-Request B ──────┼──► mesmo produto
+Request B ──────┼──► same product
                 │
 Request C ──────┘
 ```
 
-Sem proteção adequada, duas requisições podem observar o mesmo estoque antes que uma delas atualize o banco.
+Without proper protection, multiple requests may observe the same inventory level before one of them updates the database.
 
-Resultado:
+Result:
 
 ```text
 ❌ Overselling
-❌ Estoque inconsistente
-❌ Pedidos inválidos
+❌ Inconsistent inventory
+❌ Invalid orders
 ```
 
-O sistema deverá garantir que uma operação concorrente respeite a quantidade real disponível.
+The system must ensure that concurrent operations respect the actual available inventory.
 
 ---
 
-# 🔒 Consistência
+# 🔒 Consistency
 
-O PostgreSQL funciona como fonte de verdade para o estado do sistema.
+PostgreSQL acts as the source of truth for the system's state.
 
-As operações críticas utilizam mecanismos como:
+Critical operations use mechanisms such as:
 
 ```text
 Database Transactions
@@ -177,10 +177,10 @@ Optimistic Locking
 Constraints
 ```
 
-O objetivo é garantir:
+The goal is to guarantee:
 
 ```text
-100 requisições simultâneas
+100 concurrent requests
           │
           ▼
     ┌─────────────┐
@@ -197,20 +197,20 @@ O objetivo é garantir:
 
 ---
 
-# 💳 Processamento de pagamentos
+# 💳 Payment Processing
 
-O sistema suporta diferentes estratégias de pagamento:
+The system supports multiple payment strategies:
 
-| Tipo          | Processor               |
+| Type          | Processor               |
 | ------------- | ----------------------- |
 | PIX           | `PixProcessor`          |
-| Cartão        | `CreditCardProcessor`   |
-| Transferência | `BankTransferProcessor` |
+| Credit Card   | `CreditCardProcessor`   |
+| Bank Transfer | `BankTransferProcessor` |
 | Crypto        | `CryptoProcessor`       |
 
-A criação dos processadores é responsabilidade da Factory.
+The Factory is responsible for creating the appropriate processor.
 
-Isso permite adicionar uma nova estratégia:
+This makes it possible to add a new strategy:
 
 ```text
 PIX
@@ -222,17 +222,17 @@ PAYPAL
 Factory
 ```
 
-sem precisar alterar toda a lógica de processamento de pedidos.
+without modifying the entire order processing logic.
 
 ---
 
-# 🗄️ Banco de dados
+# 🗄️ Database
 
-O sistema utiliza:
+The system uses:
 
 **PostgreSQL + Prisma**
 
-Modelo conceitual:
+Conceptual model:
 
 ```text
 Customer
@@ -260,19 +260,19 @@ Payment
 PaymentTransaction
 ```
 
-O modelo foi pensado para separar:
+The model separates:
 
-* identidade do cliente;
-* pedido;
-* itens;
-* produto;
-* estoque;
-* pagamento;
-* tentativas de processamento.
+* customer identity;
+* orders;
+* order items;
+* products;
+* inventory;
+* payments;
+* processing attempts.
 
 ---
 
-# 📁 Estrutura
+# 📁 Project Structure
 
 ```text
 forgeflow/
@@ -358,13 +358,13 @@ forgeflow/
 
 # 🔌 API
 
-## Criar pedido
+## Create Order
 
 ```http
 POST /orders
 ```
 
-Exemplo:
+Example:
 
 ```json
 {
@@ -383,7 +383,7 @@ Exemplo:
 
 ---
 
-## Buscar pedido
+## Get Order
 
 ```http
 GET /orders/:id
@@ -391,7 +391,7 @@ GET /orders/:id
 
 ---
 
-## Processar pedido
+## Process Order
 
 ```http
 POST /orders/:id/process
@@ -399,23 +399,23 @@ POST /orders/:id/process
 
 ---
 
-## Processar pedidos em lote
+## Process Orders in Batch
 
 ```http
 POST /orders/batch/process
 ```
 
-Permite enviar múltiplos pedidos para processamento concorrente.
+Allows multiple orders to be submitted for concurrent processing.
 
 ---
 
-## Status dos Workers
+## Worker Status
 
 ```http
 GET /workers/status
 ```
 
-Exemplo:
+Example:
 
 ```json
 {
@@ -428,15 +428,15 @@ Exemplo:
 
 ---
 
-## Teste de concorrência
+## Concurrency Test
 
 ```http
 POST /test/concurrency
 ```
 
-Endpoint destinado exclusivamente aos experimentos de concorrência.
+Endpoint dedicated exclusively to concurrency experiments.
 
-Exemplo:
+Example:
 
 ```json
 {
@@ -450,13 +450,13 @@ Exemplo:
 
 ---
 
-# 🧪 Testes
+# 🧪 Testing
 
-O projeto possui três categorias principais.
+The project has three main testing categories.
 
 ### Unit Tests
 
-Testam componentes isoladamente.
+Test individual components in isolation.
 
 ```text
 PaymentProcessorFactory
@@ -465,7 +465,7 @@ OrderService
 
 ### Integration Tests
 
-Testam a interação entre:
+Test the interaction between:
 
 ```text
 API
@@ -479,7 +479,7 @@ PostgreSQL
 
 ### Concurrency Tests
 
-Testam especificamente:
+Specifically test:
 
 ```text
 Race Conditions
@@ -489,7 +489,7 @@ Stock Reservation
 Concurrent Orders
 ```
 
-Um dos principais testes será:
+One of the main scenarios is:
 
 ```text
 100 concurrent requests
@@ -506,25 +506,25 @@ Stock = 0
 
 ---
 
-# 🛠️ Tecnologias
+# 🛠️ Technologies
 
-| Tecnologia     | Utilização          |
-| -------------- | ------------------- |
-| TypeScript     | Linguagem principal |
-| Node.js        | Runtime             |
-| Fastify        | HTTP API            |
-| PostgreSQL     | Banco de dados      |
-| Prisma         | ORM                 |
-| Worker Threads | Concorrência        |
-| Vitest         | Testes              |
-| Docker         | Ambiente            |
-| Git            | Versionamento       |
+| Technology     | Purpose          |
+| -------------- | ---------------- |
+| TypeScript     | Primary language |
+| Node.js        | Runtime          |
+| Fastify        | HTTP API         |
+| PostgreSQL     | Database         |
+| Prisma         | ORM              |
+| Worker Threads | Concurrency      |
+| Vitest         | Testing          |
+| Docker         | Environment      |
+| Git            | Version control  |
 
 ---
 
-# 📚 Conceitos estudados
+# 📚 Concepts Studied
 
-Este projeto foi desenvolvido para explorar conceitos de engenharia de software além de CRUD.
+This project was developed to explore software engineering concepts beyond basic CRUD applications.
 
 ### Design Patterns
 
@@ -533,7 +533,7 @@ Este projeto foi desenvolvido para explorar conceitos de engenharia de software 
 * Repository Pattern
 * Dependency Injection
 
-### Concorrência
+### Concurrency
 
 * Event Loop
 * Async/Await
@@ -544,7 +544,7 @@ Este projeto foi desenvolvido para explorar conceitos de engenharia de software 
 * Race Conditions
 * Shared State
 
-### Banco de dados
+### Database
 
 * Transactions
 * Atomic Updates
@@ -552,7 +552,7 @@ Este projeto foi desenvolvido para explorar conceitos de engenharia de software 
 * Optimistic Locking
 * Constraints
 * Isolation Levels
-* Consistência
+* Consistency
 
 ### Backend
 
@@ -565,9 +565,9 @@ Este projeto foi desenvolvido para explorar conceitos de engenharia de software 
 
 ---
 
-# 📊 Experimentos
+# 📊 Experiments
 
-Uma das metas do projeto é comparar diferentes estratégias de processamento.
+One of the project's goals is to compare different processing strategies.
 
 ```text
 Sequential Processing
@@ -579,9 +579,9 @@ Promise.all
 Worker Pool
 ```
 
-As métricas serão coletadas durante a execução real.
+Metrics will be collected through actual benchmark runs.
 
-Exemplo de benchmark:
+Example:
 
 ```text
 ┌──────────────────────┬──────────┐
@@ -594,44 +594,44 @@ Exemplo de benchmark:
 └──────────────────────┴──────────┘
 ```
 
-> Os valores serão preenchidos a partir dos benchmarks executados no ambiente real.
+> Values will be populated based on benchmarks executed in the actual environment.
 
 ---
 
-# 🚀 Executando o projeto
+# 🚀 Running the Project
 
-Clone o repositório:
+Clone the repository:
 
 ```bash
 git clone <repository-url>
 cd forgeflow
 ```
 
-Instale as dependências:
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Configure as variáveis de ambiente:
+Configure environment variables:
 
 ```bash
 cp .env.example .env
 ```
 
-Gere o Prisma Client:
+Generate the Prisma Client:
 
 ```bash
 npm run prisma:generate
 ```
 
-Execute as migrations:
+Run migrations:
 
 ```bash
 npm run prisma:migrate
 ```
 
-Inicie o ambiente de desenvolvimento:
+Start the development environment:
 
 ```bash
 npm run dev
@@ -641,13 +641,13 @@ npm run dev
 
 # 🐳 Docker
 
-O projeto também possui configuração para execução através do Docker.
+The project also includes Docker configuration.
 
 ```bash
 docker compose up -d
 ```
 
-Para acompanhar os containers:
+To follow container logs:
 
 ```bash
 docker compose logs -f
@@ -657,19 +657,19 @@ docker compose logs -f
 
 # 🗺️ Roadmap
 
-* [x] Estrutura inicial do projeto
-* [ ] Configuração do TypeScript
-* [ ] Configuração do Fastify
-* [ ] Modelagem PostgreSQL
+* [x] Initial project structure
+* [ ] TypeScript configuration
+* [ ] Fastify configuration
+* [ ] PostgreSQL modeling
 * [ ] Prisma
-* [ ] CRUD de pedidos
+* [ ] Order CRUD
 * [ ] Factory Pattern
 * [ ] Payment Processors
-* [ ] Processamento concorrente
+* [ ] Concurrent processing
 * [ ] Task Queue
 * [ ] Worker Threads
 * [ ] Worker Pool
-* [ ] Controle de estoque
+* [ ] Inventory control
 * [ ] Race Condition Test
 * [ ] Database Transactions
 * [ ] Optimistic/Pessimistic Locking
@@ -677,15 +677,15 @@ docker compose logs -f
 * [ ] Concurrency Tests
 * [ ] Benchmark
 * [ ] Docker
-* [ ] Documentação da arquitetura
+* [ ] Architecture documentation
 
 ---
 
-# 🎓 O que este projeto demonstra
+# 🎓 What This Project Demonstrates
 
-O ForgeFlow não foi criado apenas para demonstrar que é possível construir uma API REST.
+ForgeFlow was not created simply to demonstrate how to build a REST API.
 
-Ele busca demonstrar a capacidade de:
+It aims to demonstrate the ability to reason about:
 
 ```text
                  SOFTWARE ENGINEERING
@@ -704,23 +704,23 @@ Ele busca demonstrar a capacidade de:
                   Production API
 ```
 
-O foco principal é entender **como diferentes partes de um sistema distribuído/concurrente interagem e quais problemas aparecem quando múltiplas operações modificam o mesmo estado simultaneamente.**
+The main focus is understanding **how different parts of a concurrent system interact and what problems emerge when multiple operations modify the same state simultaneously.**
 
 ---
 
-# 📖 Documentação
+# 📖 Documentation
 
-Documentação adicional:
+Additional documentation:
 
-* `docs/architecture.md` — arquitetura da aplicação
-* `docs/concurrency.md` — estratégias de concorrência
-* `docs/design-patterns.md` — Design Patterns utilizados
+* `docs/architecture.md` — application architecture
+* `docs/concurrency.md` — concurrency strategies
+* `docs/design-patterns.md` — Design Patterns used
 
 ---
 
 # 📜 License
 
-Este projeto é desenvolvido para fins de estudo, experimentação e portfólio.
+This project was developed for learning, experimentation, and portfolio purposes.
 
 ---
 
